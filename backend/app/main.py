@@ -9,11 +9,22 @@ from app.engines.route_engine import (
 from app.engines.shelter_engine import allocate_people_to_shelters
 from app.engines.rescue_engine import allocate_rescue_teams
 from app.engines.whatif_engine import simulate_what_if
-
+from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI(
     title="ResQTwin API",
     description="AI-Powered Disaster Management Digital Twin",
     version="1.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
