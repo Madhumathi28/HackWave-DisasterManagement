@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { simulateFlood } from "./api/resqTwinApi";
+import SafetyStatus from "./pages/SafetyStatus";
+import Dashboard from "./pages/Dashboard";
+import RequestHelp from "./pages/RequestHelp";
 import "./App.css";
-
+from app.models.emergency import EmergencyRequest, EmergencyResponse
 const buildings = [
   {
     id: "B1",
@@ -164,13 +166,32 @@ function getRisk(building, waterLevel) {
 
 function App() {
   const [waterLevel, setWaterLevel] = useState(1.5);
+  const [currentScreen, setCurrentScreen] = useState("safety");
+const [userStatus, setUserStatus] = useState(null);
   const [simulationStarted, setSimulationStarted] = useState(false);
   const [selectedBuilding, setSelectedBuilding] = useState(null);
 
   const [floodResult, setFloodResult] = useState(null);
 const [loading, setLoading] = useState(false);
 const [apiError, setApiError] = useState("");
+async function handleSimulate() {
+  try {
+    setLoading(true);
+    setApiError("");
 
+    const result = await simulateFlood(waterLevel);
+
+    console.log("Flood API result:", result);
+
+    setFloodResult(result);
+    setSimulationStarted(true);
+  } catch (error) {
+    console.error(error);
+    setApiError("Unable to connect to backend");
+  } finally {
+    setLoading(false);
+  }
+}
   const riskResults = buildings.map((building) => ({
     ...building,
     risk: getRisk(building, waterLevel),
@@ -198,23 +219,72 @@ const [apiError, setApiError] = useState("");
     setSimulationStarted(false);
     setSelectedBuilding(null);
   }
+  function handleStatusSelection(status) {
+  setUserStatus(status);
+  setCurrentScreen("dashboard");
+}
+function openRequestHelp() {
+  setCurrentScreen("request-help");
+}
 
+function goToDashboard() {
+  setCurrentScreen("dashboard");
+}
+function openAIChat() {
+  setCurrentScreen("ai-chat");
+}
+
+  if (currentScreen === "safety") {
   return (
-    <div className="app">
+    <SafetyStatus onSelectStatus={handleStatusSelection} />
+  );
+}
+if (currentScreen === "dashboard") {
+  return (
+    <Dashboard
+      userStatus={userStatus}
+      onRequestHelp={openRequestHelp}
+      onAIChat={openAIChat}
+    />
+  );
+}
+if (currentScreen === "request-help") {
+  return (
+    <RequestHelp onBack={goToDashboard} />
+  );
+}
+if (currentScreen === "ai-chat") {
+  return (
+    <AIChat onBack={goToDashboard} />
+  );
+}
+
+return (
+  <div className="app">
 
       {/* HEADER */}
 
       <header className="topbar">
-        <div>
-          <h1>🚨 ResQTwin</h1>
-          <p>AI-Powered Flood Emergency Digital Twin</p>
-        </div>
+  <div>
+    <h1>🚨 DisasterConnect</h1>
+    <p>Disaster response, safety and community coordination</p>
+  </div>
 
-        <div className="system-status">
-          <span className="status-dot"></span>
-          OFFLINE MODE
-        </div>
-      </header>
+  <div className="header-actions">
+    <div className="user-status">
+      <span>{userStatus?.icon}</span>
+      <div>
+        <small>YOUR STATUS</small>
+        <strong>{userStatus?.title}</strong>
+      </div>
+    </div>
+
+    <div className="system-status">
+      <span className="status-dot"></span>
+      ONLINE
+    </div>
+  </div>
+</header>
 
       {/* MAIN LAYOUT */}
 
@@ -258,7 +328,7 @@ const [apiError, setApiError] = useState("");
 
             <button
   className="primary-button"
-  onClick={handleFloodSimulation}
+  onClick={handleSimulate}
   disabled={loading}
 >
   {loading ? "Simulating..." : "🌊 Simulate Flood"}
@@ -378,6 +448,7 @@ const [apiError, setApiError] = useState("");
 
                 const isSelected =
                   selectedBuilding?.id === building.id;
+  
 
                 return (
                   <g
@@ -630,28 +701,6 @@ const [apiError, setApiError] = useState("");
 
     </div>
   );
-  async function handleFloodSimulation() {
-  setLoading(true);
-  setApiError("");
-
-  try {
-    const result = await simulateFlood(waterLevel);
-
-    console.log("Flood API response:", result);
-
-    setFloodResult(result);
-    setSimulationStarted(true);
-  } catch (error) {
-    console.error("Flood API error:", error);
-
-    setApiError(
-      "Unable to connect to the ResQTwin backend."
-    );
-  } finally {
-    setLoading(false);
-  }
-}
-
 }
 
 export default App;
