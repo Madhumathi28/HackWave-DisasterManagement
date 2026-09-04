@@ -1,6 +1,7 @@
-# Python virtual environment
+# Python virtual environments
 .venv/
 venv/
+backend/.venv/
 
 # Python cache
 __pycache__/
@@ -8,6 +9,14 @@ __pycache__/
 
 # Environment variables
 .env
+*.env
+
+# Node modules
+node_modules/
+
+# Build files
+dist/
+build/
 
 # VS Code
 .vscode/
@@ -15,4 +24,3 @@ __pycache__/
 # OS files
 .DS_Store
 Thumbs.db
-.env
